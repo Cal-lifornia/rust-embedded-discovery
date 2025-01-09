@@ -23,38 +23,60 @@
         };
       in
       {
-        devShells = pkgs.mkShell {
-          buildInputs = with pkgs; [
-            opelssl
-            pkg-config
-            rust-analyzer
-            cargo-deny
-            cargo-edit
-            cargo-watch
-            cargo-insta
-            probe-rs-tools
-            minicom
-            gdb
-            cargo-binutils
-            rust-bin.selectLatestNightlyWith
-            (
-              toolchain:
-              toolchain.default.override {
-                extensions = [
-                  "rust-src"
-                  "rust-fmt"
-                  "clippy"
-                  "llvm-tools"
-                ];
-              }
-            )
-          ];
+        # overlays.default = final: prev: {
+        #   rustToolchain =
+        #     let
+        #       rust = prev.rust-bin;
+        #     in
+        #     rust.selectLatestNightlyWith (
+        #       toolchain:
+        #       toolchain.default.override {
+        #         extensions = [
+        #           "rust-src"
+        #           "rustfmt"
+        #           "clippy"
+        #           "llvm-tools"
+        #         ];
+        #       }
+        #     );
 
-          env = {
-            RUST_SRC_PATH = "{pkgs.rust-bin}/lib/rustlib/src/rust/library";
+        # };
+        devShells.default =
+          with pkgs;
+          mkShell {
+            buildInputs = [
+              openssl
+              pkg-config
+              rust-analyzer
+              cargo-deny
+              cargo-edit
+              cargo-watch
+              cargo-insta
+              probe-rs-tools
+              minicom
+              gdb
+              udev
+              cargo-binutils
+              usbutils
+              (rust-bin.selectLatestNightlyWith (
+                toolchain:
+                toolchain.default.override {
+                  extensions = [
+                    "rust-src"
+                    "rustfmt"
+                    "clippy"
+                    "llvm-tools"
+                  ];
+                  targets = [ "thumbv7em-none-eabihf" ];
+                }
+              ))
+            ];
+
+            env = {
+              # RUST_SRC_PATH = "${pkgs.rustToolchain}/lib/rustlib/src/rust/library";
+            };
+
           };
-
-        };
       }
     );
 
